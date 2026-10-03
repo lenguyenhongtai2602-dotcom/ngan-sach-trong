@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<title>Bảng Đen Số</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Lora:wght@600;700&family=Pangolin&display=swap">
+<style>
+/* Layout: maker panel on the left (stacks on phones), a sheet of Vietnamese grid notebook paper ("giấy ô ly") on the right with a red margin line; student answers are written in purple ink, teacher marks in red. */
+:root {
+  --bg: #e8ebf2; --panel: #ffffff; --ink: #1d2333; --muted: #5a6378; --line: #d3d9e6;
+  --accent: #5a3fc0; --accent-soft: #ece8fb; --accent-ink: #ffffff;
+  --paper: #fdfdfa; --sheet-ink: #1d2333; --sheet-muted: #5d6478; --grid: rgba(84, 118, 200, 0.14); --margin: #e06060;
+  --pen: #4527a8; --ok: #1d8049; --okbg: #e3f5ea; --bad: #cf3434; --badbg: #fde8e8; --mark: #fff1b8;
+  --f-ui: 'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif;
+  --f-head: 'Lora', Georgia, 'Times New Roman', serif;
+  --f-hand: 'Pangolin', 'Comic Sans MS', 'Segoe Print', cursive;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #131622; --panel: #1c2030; --ink: #e6e9f2; --muted: #9aa3ba; --line: #2d3346;
+  --accent: #a593ff; --accent-soft: #2a2546; --accent-ink: #15122a; --paper: #f3f2ec; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #131622; --panel: #1c2030; --ink: #e6e9f2; --muted: #9aa3ba; --line: #2d3346;
+  --accent: #a593ff; --accent-soft: #2a2546; --accent-ink: #15122a; --paper: #f3f2ec; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--f-ui); padding-inline: 16px; padding-block: 0 40px; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.top { max-width: 1320px; margin: 0 auto; display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; padding-block: 22px 16px; }
+.brand { font: 700 1.6rem/1.1 var(--f-head); letter-spacing: -0.01em; }
+.brand span { color: var(--accent); }
+.tagline { color: var(--muted); font-size: 0.92rem; }
+
+.layout { max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 960px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- maker panel ---------- */
+.side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.maker { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.maker h2 { margin: 0; font: 700 1.05rem var(--f-ui); }
+.tabs { display: grid; grid-template-columns: 1fr 1fr; background: var(--bg); border-radius: 10px; padding: 4px; gap: 4px; }
+.tabs button { border: none; background: transparent; padding: 8px 6px; border-radius: 7px; font-weight: 600; font-size: 0.9rem; color: var(--muted); }
+.tabs button[aria-selected="true"] { background: var(--panel); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+.field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.field label, .lbl { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.row2 { display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 10px; }
+.maker input[type="text"], .maker select, .maker textarea { width: 100%; border: 1px solid var(--line); background: var(--panel); border-radius: 9px; padding: 9px 11px; }
+.maker textarea { min-height: 92px; resize: vertical; font-size: 0.9rem; }
+.drop { border: 2px dashed var(--line); border-radius: 12px; padding: 16px; text-align: center; color: var(--muted); font-size: 0.9rem; transition: border-color .2s, background .2s; cursor: pointer; }
+.drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.drop b { color: var(--accent); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-soft); color: var(--ink); border-radius: 20px; padding: 3px 4px 3px 10px; font-size: 0.82rem; max-width: 100%; }
+.chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip button { border: none; background: transparent; color: var(--muted); width: 22px; height: 22px; border-radius: 50%; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label { text-align: center; padding: 7px 4px; font-size: 0.86rem; font-weight: 600; color: var(--muted); cursor: pointer; border-left: 1px solid var(--line); text-transform: none; letter-spacing: 0; }
+.seg label:first-of-type { border-left: none; }
+.seg input:checked + label { background: var(--accent); color: var(--accent-ink); }
+.seg input:focus-visible + label { outline: 3px solid var(--accent); outline-offset: -3px; }
+.go { border: none; background: var(--accent); color: var(--accent-ink); font-weight: 700; padding: 12px; border-radius: 10px; font-size: 1rem; }
+.go:disabled { opacity: 0.55; cursor: progress; }
+.status { font-size: 0.88rem; color: var(--muted); display: flex; flex-direction: column; gap: 8px; }
+.status .bar { height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; }
+.status .bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .4s; }
+.status .err { color: var(--bad); }
+.status .stop { align-self: flex-start; border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 4px 12px; font-size: 0.85rem; }
+.hintnote { font-size: 0.8rem; color: var(--muted); line-height: 1.5; margin: 0; }
+.recent { display: flex; flex-direction: column; gap: 6px; }
+.recent button { text-align: left; border: 1px solid var(--line); background: transparent; border-radius: 8px; padding: 7px 10px; font-size: 0.85rem; }
+.recent button small { display: block; color: var(--muted); }
+.combo { position: relative; }
+.lessons { position: absolute; z-index: 10; left: 0; right: 0; top: calc(100% + 4px); max-height: 340px; overflow-y: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 14px 30px rgba(15, 18, 40, 0.22); padding: 6px; }
+.lessons .ch { font-size: 0.74rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); padding: 8px 8px 4px; position: sticky; top: -6px; background: var(--panel); }
+.lessons .ls { display: block; width: 100%; text-align: left; border: none; background: transparent; padding: 7px 10px; border-radius: 7px; font-size: 0.9rem; line-height: 1.35; }
+.lessons .ls:hover, .lessons .ls.active { background: var(--accent-soft); }
+.lessons .msg { padding: 10px; font-size: 0.86rem; color: var(--muted); }
+.lessons .msg.err { color: var(--bad); }
+.lessons .foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; border-top: 1px solid var(--line); margin-top: 6px; padding: 8px 6px 2px; font-size: 0.76rem; color: var(--muted); }
+.lessons .foot button { border: 1px solid var(--line); background: transparent; border-radius: 7px; padding: 3px 9px; font-size: 0.78rem; flex: none; }
+
+/* ---------- toolbar ---------- */
+.sheet-col { min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.toolbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--bg); padding-block: 8px; }
+.toolbar button { border: 1px solid var(--line); background: var(--panel); border-radius: 9px; padding: 8px 13px; font-weight: 600; font-size: 0.88rem; }
+.toolbar button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.score { margin-left: auto; font-weight: 700; font-variant-numeric: tabular-nums; padding: 6px 14px; border-radius: 20px; background: var(--panel); border: 1px solid var(--line); }
+.score.has { background: var(--okbg); color: var(--ok); border-color: transparent; }
+.example-flag { font-size: 0.82rem; color: var(--muted); background: var(--panel); border: 1px dashed var(--line); border-radius: 8px; padding: 6px 10px; }
+
+/* ---------- the sheet ---------- */
+.sheet { position: relative; background-color: var(--paper); color: var(--sheet-ink);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 26px 26px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.08), 0 12px 30px rgba(20, 24, 50, 0.12);
+  padding: 40px 40px 48px 88px; min-height: 600px; }
+.sheet::before { content: ''; position: absolute; top: 0; bottom: 0; left: 64px; width: 2px; background: var(--margin); opacity: 0.55; }
+@media (max-width: 640px) { .sheet { padding: 26px 16px 34px 38px; } .sheet::before { left: 24px; } }
+.sh-head { text-align: center; display: flex; flex-direction: column; gap: 4px; margin-bottom: 20px; }
+.sh-kicker { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sheet-muted); }
+.sh-title { font: 700 1.7rem/1.25 var(--f-head); margin: 0; text-wrap: balance; }
+.sh-name { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; font-size: 0.9rem; color: var(--sheet-muted); margin-top: 6px; }
+.sh-name input { border: none; border-bottom: 1.5px dotted var(--sheet-muted); background: transparent; font: 1.05rem var(--f-hand); color: var(--pen); width: 170px; padding: 0 4px; }
+.sh-name input.short { width: 70px; }
+.objectives { border: 1.5px solid var(--sheet-ink); border-radius: 6px; padding: 10px 16px; margin: 0 0 22px; background: rgba(255,255,255,0.6); }
+.objectives b { font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; }
+.objectives ul { margin: 6px 0 0; padding-left: 20px; }
+.sec { margin-bottom: 30px; }
+.sec h3 { font: 700 1.2rem/1.3 var(--f-head); margin: 0 0 10px; color: var(--sheet-ink); text-wrap: balance; }
+.theory { list-style: none; margin: 0 0 16px; padding: 0; display: flex; flex-direction: column; gap: 8px; line-height: 2.1; max-width: 72ch; }
+.theory li { position: relative; padding-left: 18px; }
+.theory li::before { content: ''; position: absolute; left: 2px; top: 0.95em; width: 6px; height: 6px; border-radius: 50%; background: var(--sheet-ink); }
+.blank { font: 1.08rem var(--f-hand); color: var(--pen); border: none; border-bottom: 2px dotted var(--sheet-muted); background: transparent; padding: 0 3px; text-align: center; min-width: 4ch; max-width: 100%; border-radius: 3px 3px 0 0; }
+.blank:focus { outline: none; background: var(--mark); border-bottom-style: solid; border-bottom-color: var(--pen); }
+.blank.ok, .tick.ok { background: var(--okbg); border-bottom-color: var(--ok); }
+.blank.bad, .tick.bad { background: var(--badbg); border-bottom-color: var(--bad); }
+.fix { font: 0.98rem var(--f-hand); color: var(--bad); margin-left: 3px; white-space: nowrap; }
+.bw { position: relative; display: inline-block; }
+.bw .fix { position: absolute; left: 50%; top: calc(100% - 6px); transform: translateX(-50%); margin: 0; font-size: 0.86rem; line-height: 1.2; background: var(--badbg); padding: 0 5px; border-radius: 3px; z-index: 1; }
+.show-ans .bw .fix { display: inline-block; }
+.qbox { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; display: flex; flex-direction: column; gap: 14px; }
+.qhead { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+.q { display: flex; flex-direction: column; gap: 8px; }
+.q > p { margin: 0; line-height: 1.75; }
+.q > p b { margin-right: 4px; }
+.qtype { display: inline-block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--sheet-muted); border: 1px solid var(--grid); background: rgba(255,255,255,0.8); border-radius: 4px; padding: 0 6px; margin-left: 6px; vertical-align: 2px; }
+.opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 18px; padding-left: 6px; }
+@media (max-width: 640px) { .opts { grid-template-columns: minmax(0, 1fr); } }
+.opt { display: flex; gap: 8px; align-items: baseline; padding: 3px 8px; border-radius: 6px; cursor: pointer; }
+.opt input { accent-color: var(--pen); }
+.opt.ok { background: var(--okbg); } .opt.bad { background: var(--badbg); }
+.explain { font-size: 0.88rem; color: var(--sheet-muted); background: rgba(255,255,255,0.85); border: 1px dashed var(--sheet-muted); border-radius: 6px; padding: 6px 10px; margin: 0; }
+.tf { border-collapse: collapse; width: 100%; background: rgba(255,255,255,0.7); }
+.tf th, .tf td { border: 1px solid #b9c0d3; padding: 6px 8px; text-align: left; vertical-align: top; }
+.tf th { font-size: 0.8rem; background: rgba(90,63,192,0.08); }
+.tf td.c { text-align: center; width: 48px; }
+.tf tr.ok td:first-child { background: var(--okbg); } .tf tr.bad td:first-child { background: var(--badbg); }
+.tblwrap { overflow-x: auto; }
+.match { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px 20px; }
+@media (max-width: 640px) { .match { grid-template-columns: minmax(0, 1fr); } }
+.mcol { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.mcol .lbl { color: var(--sheet-muted); }
+.mrow { display: flex; gap: 8px; align-items: center; background: rgba(255,255,255,0.8); border: 1px solid #c9cfdd; border-radius: 6px; padding: 6px 8px; min-height: 40px; }
+.mrow > span { flex: 1; min-width: 0; }
+.mrow select { font: 1rem var(--f-hand); color: var(--pen); border: 1.5px solid #b9c0d3; border-radius: 6px; background: var(--paper); padding: 2px 4px; }
+.mrow.ok { border-color: var(--ok); background: var(--okbg); } .mrow.bad { border-color: var(--bad); background: var(--badbg); }
+.tag { font-weight: 800; min-width: 1.4em; color: var(--sheet-ink); }
+.order { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.order li { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.85); border: 1px solid #c9cfdd; border-radius: 6px; padding: 5px 6px 5px 10px; }
+.order li span { flex: 1; min-width: 0; }
+.order li .n { flex: none; font: 1.05rem var(--f-hand); color: var(--pen); width: 1.5em; }
+.order button { border: 1px solid #c9cfdd; background: var(--paper); color: var(--sheet-ink); border-radius: 6px; width: 32px; height: 30px; }
+.order.ok li { border-color: var(--ok); background: var(--okbg); } .order.bad li { border-color: var(--bad); }
+.long { width: 100%; min-height: 84px; font: 1.05rem/1.9 var(--f-hand); color: var(--pen); border: 1px solid #c9cfdd; border-radius: 6px; padding: 4px 10px; resize: vertical;
+  background: repeating-linear-gradient(transparent 0 calc(1.9em - 1px), #c9cfdd calc(1.9em - 1px) 1.9em), rgba(255,255,255,0.75); background-attachment: local; }
+.reveal { align-self: flex-start; border: 1px solid #c9cfdd; background: rgba(255,255,255,0.9); color: var(--sheet-ink); border-radius: 6px; padding: 3px 10px; font-size: 0.84rem; }
+.model { font-size: 0.92rem; background: var(--okbg); color: var(--sheet-ink); border-radius: 6px; padding: 8px 12px; margin: 0; }
+.aifeedback { font: 1rem var(--f-hand); color: var(--bad); margin: 0; }
+.show-ans .fix, .show-ans .explain { display: inline; }
+.fix[hidden], .explain[hidden] { display: none !important; }
+.sheet-foot { margin-top: 26px; text-align: center; font-size: 0.8rem; color: var(--sheet-muted); }
+.toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); transform: translateX(-50%); background: var(--ink); color: var(--panel); padding: 10px 18px; border-radius: 10px; font-size: 0.9rem; z-index: 20; max-width: calc(100% - 32px); }
+
+/* improve panel */
+.improve h2 small { display: block; font-weight: 500; font-size: 0.84rem; color: var(--muted); margin-top: 4px; line-height: 1.45; }
+.parts { display: flex; flex-direction: column; gap: 6px; }
+.part { display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); padding: 8px 10px; cursor: pointer; font-size: 0.9rem; line-height: 1.35; }
+.part input { accent-color: var(--accent); width: 17px; height: 17px; flex: none; }
+.part span { flex: 1; min-width: 0; }
+.part:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.badge { flex: none; font-size: 0.74rem; font-weight: 700; padding: 1px 7px; border-radius: 3px; }
+.badge.bad { background: var(--badbg); color: var(--bad); } .badge.ok { background: var(--okbg); color: var(--ok); }
+.field label.auto, .auto { display: flex; gap: 8px; align-items: center; font-size: 0.86rem; color: var(--ink); text-transform: none; letter-spacing: 0; font-weight: 500; margin-top: 4px; }
+.auto input { accent-color: var(--accent); }
+.focus-flag { font-size: 0.82rem; color: var(--accent); font-weight: 700; }
+/* squarer outer UI */
+.maker, .tabs, .tabs button, .maker input[type="text"], .maker select, .maker textarea, .drop, .chip, .chip button, .seg,
+.go, .status .stop, .status .bar, .recent button, .toolbar button, .score, .example-flag, .lessons, .lessons .ls, .lessons .foot button, .toast, .part { border-radius: 3px; }
+.tabs { padding: 3px; gap: 3px; }
+.tabs button[aria-selected="true"] { box-shadow: 0 0 0 1px var(--line); }
+.maker { box-shadow: 0 1px 0 var(--line); }
+.score.has { border-color: var(--ok); }
+.sheet { border-radius: 0; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<header class="top">
+  <div class="brand">Bảng Đen <span>Số</span></div>
+  <div class="tagline">Biến một bài học trong SGK thành tài liệu rời: lý thuyết có chỗ trống để điền, kèm câu hỏi sau mỗi phần.</div>
+</header>
+
+<div class="layout">
+  <div class="side">
+  <aside class="maker" aria-label="Tạo tài liệu rời">
+    <h2>Tạo tài liệu rời</h2>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="tabName" aria-selected="true">Gõ tên bài</button>
+      <button type="button" role="tab" id="tabFile" aria-selected="false">Tải tài liệu lên</button>
+    </div>
+    <div class="row2">
+      <div class="field"><label for="grade">Lớp</label><select id="grade"></select></div>
+      <div class="field"><label for="subject">Môn học</label><select id="subject"></select></div>
+    </div>
+    <div class="field"><label for="book">Bộ sách</label>
+      <select id="book">
+        <option value="Kết nối tri thức với cuộc sống">Kết nối tri thức (SGK thống nhất)</option>
+        <option value="Chân trời sáng tạo">Chân trời sáng tạo (trước 2026)</option>
+        <option value="Cánh Diều">Cánh Diều (trước 2026)</option>
+        <option value="Khác / không rõ">Khác / không rõ</option>
+      </select>
+    </div>
+    <div id="paneName" class="field">
+      <label for="lesson">Tên bài</label>
+      <div class="combo">
+        <input type="text" id="lesson" placeholder="Bấm để chọn bài, hoặc gõ tên bài" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="lessonList">
+        <div class="lessons" id="lessonList" role="listbox" hidden></div>
+      </div>
+    </div>
+    <div id="paneFile" class="field" hidden>
+      <span class="lbl">Tài liệu bài học</span>
+      <div class="drop" id="drop" tabindex="0" role="button" aria-label="Chọn tệp">Kéo thả tệp vào đây hoặc <b>chọn tệp</b><br><small>PDF, Word (.docx), ảnh chụp trang SGK, .txt</small></div>
+      <input type="file" id="fileInput" multiple accept=".pdf,.docx,.txt,.md,image/*" hidden>
+      <div class="chips" id="fileChips"></div>
+      <label for="pasted" style="margin-top:6px">Hoặc dán nội dung bài</label>
+      <textarea id="pasted" placeholder="Dán phần lý thuyết của bài học vào đây..."></textarea>
+      <input type="text" id="lesson2" placeholder="Tên bài (không bắt buộc)">
+      <label class="auto"><input type="checkbox" id="autoGen" checked> Tự tạo phiếu ngay khi tải tệp lên</label>
+    </div>
+    <div class="field"><span class="lbl">Mức độ câu hỏi</span>
+      <div class="seg">
+        <input type="radio" name="lvl" id="lvAuto" value="auto" checked><label for="lvAuto">Theo lớp</label>
+        <input type="radio" name="lvl" id="lvEasy" value="easy"><label for="lvEasy">Dễ hơn</label>
+        <input type="radio" name="lvl" id="lvHard" value="hard"><label for="lvHard">Khó hơn</label>
+      </div>
+    </div>
+    <div class="field"><span class="lbl">Độ dài phiếu</span>
+      <div class="seg">
+        <input type="radio" name="len" id="lnS" value="short"><label for="lnS">Ngắn</label>
+        <input type="radio" name="len" id="lnM" value="medium" checked><label for="lnM">Vừa</label>
+        <input type="radio" name="len" id="lnL" value="long"><label for="lnL">Đầy đủ</label>
+      </div>
+    </div>
+    <button class="go" id="goBtn" type="button">Tạo tài liệu rời</button>
+    <div class="status" id="status" aria-live="polite"></div>
+    <p class="hintnote">Khi chỉ gõ tên bài, nội dung được soạn theo kiến thức chung của bài nên có thể khác SGK một chút. Tải tài liệu lên để phiếu bám sát sách nhất.</p>
+  </aside>
+
+  <section class="maker improve" aria-label="Cải thiện một phần">
+    <h2>Cải thiện một phần<small>Chọn phần bạn muốn học kỹ hơn. AI soạn phiếu ôn riêng cho phần đó: giải thích sâu hơn và nhiều bài luyện từ dễ đến khó. Sau khi “Kiểm tra bài”, các phần còn sai được chọn sẵn.</small></h2>
+    <div class="parts" id="parts"></div>
+    <div class="field"><span class="lbl">Mục tiêu</span>
+      <div class="seg">
+        <input type="radio" name="goal" id="gTheory" value="theory"><label for="gTheory">Nắm lý thuyết</label>
+        <input type="radio" name="goal" id="gPractice" value="practice" checked><label for="gPractice">Luyện bài tập</label>
+        <input type="radio" name="goal" id="gAdv" value="advanced"><label for="gAdv">Nâng cao</label>
+      </div>
+    </div>
+    <div class="field"><label for="focusNote">Chỗ bạn chưa hiểu (không bắt buộc)</label>
+      <textarea id="focusNote" placeholder="VD: Em hay nhầm tế bào nhân sơ với nhân thực" style="min-height:64px"></textarea></div>
+    <button class="go" id="improveBtn" type="button">Tạo phiếu ôn phần đã chọn</button>
+    <div class="status" id="status2" aria-live="polite"></div>
+  </section>
+  <section class="maker" id="recentWrap" hidden aria-label="Phiếu gần đây"><span class="lbl">Phiếu gần đây</span><div class="recent" id="recent"></div></section>
+  </div>
+
+  <section class="sheet-col">
+    <div class="toolbar">
+      <button type="button" class="primary" id="checkBtn">Kiểm tra bài</button>
+      <button type="button" id="ansBtn">Hiện đáp án</button>
+      <button type="button" id="resetBtn">Làm lại</button>
+      <button type="button" id="aiGradeBtn" hidden>Nhờ AI chấm tự luận</button>
+      <button type="button" id="dlBtn" hidden>Tải file Word</button>
+      <span class="score" id="score">Chưa chấm</span>
+    </div>
+    <div class="example-flag" id="exFlag">Đây là phiếu mẫu. Chọn lớp, môn, gõ tên bài hoặc tải tài liệu lên rồi bấm “Tạo tài liệu rời” để có phiếu của bạn.</div>
+    <article class="sheet" id="sheet" aria-live="polite"></article>
+  </section>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const norm = s => String(s ?? '').normalize('NFC').toLowerCase().replace(/[.,;:!?"'“”()\[\]]/g, '').replace(/\s+/g, ' ').trim();
+const shuffle = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+const LETTERS = 'ABCDEFGHIJ';
+function toast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3200); }
+const store = { get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
+
+/* ---------- form setup ---------- */
+// subjects that have a textbook in each grade (GDPT 2018)
+const SUBJECTS = [
+  ['Toán', 1, 12], ['Tiếng Việt', 1, 5], ['Ngữ văn', 6, 12], ['Tiếng Anh', 1, 12], ['Tự nhiên và Xã hội', 1, 3], ['Khoa học', 4, 5],
+  ['Khoa học tự nhiên', 6, 9], ['Lịch sử và Địa lí', 4, 9], ['Vật lí', 10, 12], ['Hoá học', 10, 12], ['Sinh học', 10, 12], ['Lịch sử', 10, 12], ['Địa lí', 10, 12],
+  ['Đạo đức', 1, 5], ['Giáo dục công dân', 6, 9], ['Giáo dục kinh tế và pháp luật', 10, 12], ['Tin học', 3, 12], ['Công nghệ', 3, 12],
+  ['Hoạt động trải nghiệm', 1, 12], ['Giáo dục thể chất', 1, 12], ['Âm nhạc', 1, 12], ['Mĩ thuật', 1, 12], ['Giáo dục quốc phòng và an ninh', 10, 12], ['Khác', 1, 12]
+];
+const gradeSel = $('#grade'), subjSel = $('#subject');
+for (let g = 1; g <= 12; g++) gradeSel.add(new Option('Lớp ' + g, g));
+function fillSubjects() {
+  const g = +gradeSel.value, keep = subjSel.value; subjSel.innerHTML = '';
+  SUBJECTS.filter(([, a, b]) => g >= a && g <= b).forEach(([n]) => subjSel.add(new Option(n, n)));
+  if ([...subjSel.options].some(o => o.value === keep)) subjSel.value = keep;
+}
+gradeSel.value = '6'; fillSubjects(); subjSel.value = 'Khoa học tự nhiên';
+gradeSel.addEventListener('change', fillSubjects);
+let mode = 'name';
+function setTab(m) {
+  mode = m;
+  $('#tabName').setAttribute('aria-selected', m === 'name'); $('#tabFile').setAttribute('aria-selected', m === 'file');
+  $('#paneName').hidden = m !== 'name'; $('#paneFile').hidden = m !== 'file';
+}
+$('#tabName').onclick = () => setTab('name'); $('#tabFile').onclick = () => setTab('file');
+
+/* ---------- files ---------- */
+let files = [];
+const fileInput = $('#fileInput'), drop = $('#drop');
+function renderChips() {
+  $('#fileChips').innerHTML = files.map((f, i) => `<span class="chip"><span>${esc(f.name)}</span><button type="button" data-i="${i}" aria-label="Bỏ tệp">✕</button></span>`).join('');
+}
+$('#fileChips').onclick = e => { const b = e.target.closest('button[data-i]'); if (b) { files.splice(+b.dataset.i, 1); renderChips(); } };
+function addFiles(list) { for (const f of list) files.push(f); files = files.slice(0, 8); renderChips(); maybeAutoGenerate(); }
+drop.onclick = () => fileInput.click();
+drop.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } };
+fileInput.onchange = () => { addFiles(fileInput.files); fileInput.value = ''; };
+['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => { if (e.dataTransfer?.files?.length) addFiles(e.dataTransfer.files); });
+
+const scriptCache = {};
+function loadScript(src) {
+  return scriptCache[src] ||= new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('load ' + src)); document.head.appendChild(s); });
+}
+const LIB = {
+  pdf: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+  pdfWorker: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
+  mammoth: 'https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js',
+  docx: 'https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js'
+};
+async function pdfToContent(file, maxImages) {
+  await loadScript(LIB.pdf); await loadScript(LIB.pdfWorker);
+  const lib = window.pdfjsLib; lib.GlobalWorkerOptions.workerSrc = LIB.pdfWorker;
+  const pdf = await lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()), isEvalSupported: false }).promise;
+  let text = '';
+  for (let p = 1; p <= Math.min(pdf.numPages, 40); p++) {
+    const page = await pdf.getPage(p); const tc = await page.getTextContent();
+    text += tc.items.map(it => it.str + (it.hasEOL ? '\n' : ' ')).join('') + '\n\n';
+  }
+  const images = [];
+  if (text.replace(/\s/g, '').length < 200 && maxImages > 0) {      // scanned PDF: send page pictures instead
+    for (let p = 1; p <= Math.min(pdf.numPages, maxImages); p++) {
+      const page = await pdf.getPage(p); const vp = page.getViewport({ scale: 1.6 });
+      const c = document.createElement('canvas'); c.width = vp.width; c.height = vp.height;
+      await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+      images.push(await new Promise(r => c.toBlob(r, 'image/jpeg', 0.85)));
+    }
+  }
+  return { text, images };
+}
+async function collectSource(limits) {
+  let text = $('#pasted').value.trim() ? $('#pasted').value.trim() + '\n\n' : '';
+  const images = []; const maxImg = limits?.images?.maxCount || 0; const notes = [];
+  for (const f of files) {
+    const name = f.name.toLowerCase();
+    if (f.type.startsWith('image/')) {
+      if (maxImg && images.length < maxImg) images.push(f); else notes.push(f.name);
+    } else if (name.endsWith('.pdf')) {
+      const r = await pdfToContent(f, maxImg - images.length); text += r.text; images.push(...r.images);
+    } else if (name.endsWith('.docx')) {
+      await loadScript(LIB.mammoth);
+      const r = await window.mammoth.extractRawText({ arrayBuffer: await f.arrayBuffer() }); text += r.value + '\n\n';
+    } else { text += (await f.text()) + '\n\n'; }
+  }
+  return { text: text.slice(0, 60000), images, skipped: notes };
+}
+
+/* ---------- prompt ---------- */
+function levelGuide(g, lvl) {
+  let band = g <= 3 ? 0 : g <= 5 ? 1 : g <= 9 ? 2 : 3;
+  if (lvl === 'easy') band = Math.max(0, band - 1); if (lvl === 'hard') band = Math.min(3, band + 1);
+  return [
+    'Học sinh nhỏ (lớp 1–3): câu ngắn, từ ngữ đơn giản, gần gũi. Dùng chủ yếu: fill, mcq (3 lựa chọn), tf (2–3 ý), match (3–4 cặp). Đáp án chỗ trống 1–2 từ.',
+    'Tiểu học lớp 4–5: thêm order và short ngắn (1–2 câu). mcq 4 lựa chọn. Có 1–2 câu vận dụng vào đời sống.',
+    'THCS: đủ các loại. Có câu hiểu, vận dụng, tình huống thực tế, giải thích "vì sao". short yêu cầu trả lời 2–4 câu. Có thể có bài tập tính toán nếu môn học cần.',
+    'THPT: mức vận dụng và vận dụng cao. Theo cấu trúc đề mới: mcq 4 lựa chọn với phương án nhiễu hợp lí; tf dạng Đúng/Sai 4 ý a, b, c, d xoay quanh một tình huống/đoạn dữ liệu; short dạng "trả lời ngắn" (đáp án là một con số hoặc cụm từ ngắn) và câu tự luận phân tích, so sánh, đánh giá, giải thích hiện tượng, đọc bảng số liệu.'
+  ][band];
+}
+function buildPrompt(o) {
+  const counts = { short: '2–3 phần, mỗi phần 2 câu hỏi, luyện tập tổng hợp 2 câu', medium: '3–5 phần, mỗi phần 2–3 câu hỏi, luyện tập tổng hợp 3–4 câu', long: '4–6 phần, mỗi phần 3–4 câu hỏi, luyện tập tổng hợp 4–6 câu' }[o.len];
+  const src = o.text ? `NỘI DUNG BÀI HỌC (chỉ dùng kiến thức trong tài liệu này; giữ đúng thuật ngữ, số liệu, bố cục mục của tài liệu):\n"""\n${o.text}\n"""` :
+    (o.images ? 'Nội dung bài học nằm trong các ảnh đính kèm (ảnh chụp trang SGK/tài liệu). Chỉ dùng kiến thức trong ảnh.' :
+      'Chưa có tài liệu: hãy soạn theo kiến thức chuẩn của bài này trong chương trình GDPT 2018, bám sát bố cục các mục của bài trong bộ sách đã nêu. Chỉ dùng kiến thức chắc chắn đúng.');
+  return `Bạn là giáo viên Việt Nam giỏi, đang soạn TÀI LIỆU RỜI (phiếu học tập "đục lỗ") để học sinh vừa học lý thuyết vừa luyện tập.
+Thông tin: Lớp ${o.grade}; Môn ${o.subject}; Bộ sách: ${o.book}; Bài: ${o.lesson || '(xác định từ tài liệu)'}.
+${src}
+
+YÊU CẦU
+1. Chia lý thuyết theo bố cục các mục của bài (dùng số La Mã: I., II., ...): ${counts}.
+2. Mỗi phần có "theory": 3–7 ý tóm tắt lý thuyết, viết thành câu hoàn chỉnh. ĐỤC LỖ các từ khóa quan trọng nhất bằng {{đáp án}} (mỗi phần 3–8 chỗ trống, mỗi đáp án 1–4 từ, không đục từ vô nghĩa như "là", "và"). Nếu có nhiều đáp án chấp nhận được, viết {{đáp án 1|đáp án 2}}.
+3. Sau mỗi phần là "questions" gồm nhiều LOẠI câu khác nhau (không lặp một loại quá 2 lần trong một phần). Thêm "practice": luyện tập tổng hợp cuối phiếu.
+4. Mức độ: ${levelGuide(o.grade, o.level)}
+5. Toàn bộ bằng tiếng Việt chuẩn, có dấu. Không bịa số liệu. Công thức viết dạng văn bản thường (vd: v = s/t, H₂O).
+
+CÁC LOẠI CÂU HỎI (đúng định dạng JSON):
+- {"type":"fill","q":"Câu có {{chỗ trống}} cần điền."}
+- {"type":"mcq","q":"Câu hỏi?","options":["...","...","...","..."],"answer":0,"explain":"giải thích ngắn"}   (answer = chỉ số phương án đúng, bắt đầu từ 0)
+- {"type":"tf","q":"Dẫn đề hoặc tình huống","items":[{"s":"Nhận định","answer":true}]}
+- {"type":"match","q":"Nối mỗi ý ở cột A với một ý phù hợp ở cột B.","pairs":[{"a":"...","b":"..."}]}   (3–5 cặp, cột B không trùng nhau)
+- {"type":"order","q":"Sắp xếp ... theo đúng thứ tự.","items":["bước 1","bước 2","bước 3","bước 4"]}   (liệt kê theo thứ tự ĐÚNG)
+- {"type":"short","q":"Câu hỏi","answer":"đáp án hoặc đáp án mẫu"}   (đáp án ngắn ≤ 4 từ/con số thì học sinh tự điền và được chấm tự động; dài hơn là câu tự luận)
+
+TRẢ VỀ DUY NHẤT một JSON:
+{"title":"tên bài","subject":"${o.subject}","grade":${o.grade},"objectives":["mục tiêu 1","mục tiêu 2"],"sections":[{"heading":"I. ...","theory":["... {{...}} ..."],"questions":[...]}],"practice":[...]}`;
+}
+
+/* ---------- generation ---------- */
+let sample = null, sampleLimits = null, downloads = null;
+function claudeHost() {
+  // inside the bookshelf page the tool runs in an iframe: use the page that owns the capabilities
+  try { if (window.parent !== window && window.parent.claude?.use) return window.parent.claude; } catch (e) {}
+  return window.claude?.use ? window.claude : null;
+}
+const capReady = (async () => {
+  const CL = claudeHost(); if (!CL) return;
+  try { sample = await CL.use('sample'); } catch (e) { sample = null; }
+  if (sample) sampleLimits = await sample.limits().catch(() => null);
+  try { downloads = await CL.use('downloads'); } catch (e) { downloads = null; }
+  $('#dlBtn').hidden = !downloads;
+  $('#aiGradeBtn').hidden = !sample || !hasLongShort;
+})();
+const status = $('#status'); let ctl = null;
+function setStatus(html) { status.innerHTML = html; }
+const ERR = {
+  not_granted: 'Bạn chưa cho phép trang dùng Claude nên chưa tạo được phiếu.', sampling_disabled: 'Tài khoản này chưa dùng được tính năng hỏi Claude.',
+  rate_limited: 'Đã gửi quá nhiều yêu cầu. Chờ một lúc rồi thử lại.', session_expired: 'Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.',
+  prompt_too_large: 'Tài liệu quá dài. Hãy chỉ tải lên phần của một bài.', invalid_json: 'Kết quả bị lỗi định dạng. Bấm tạo lại một lần nữa.',
+  refused: 'Claude không xử lý được nội dung này. Hãy thử tài liệu khác.', image_rejected: 'Ảnh không đọc được. Hãy chọn ảnh JPG hoặc PNG rõ hơn.',
+  images_unavailable: 'Trang này chưa gửi được ảnh. Hãy dán chữ hoặc dùng PDF/Word có chữ.'
+};
+let busy = false;
+async function runSample(prompt, o, images, stEl) {
+  ctl = new AbortController(); busy = true;
+  $('#goBtn').disabled = true; $('#improveBtn').disabled = true;
+  stEl.innerHTML = '<div class="stTxt">Đang suy nghĩ... (thường mất 30 giây – 2 phút)</div><div class="bar"><i></i></div><button type="button" class="stop">Dừng</button>';
+  const txt = stEl.querySelector('.stTxt'), bar = stEl.querySelector('.bar i');
+  stEl.querySelector('.stop').onclick = () => ctl?.abort();
+  const expect = { short: 6000, medium: 10000, long: 15000 }[o.len] || 11000;
+  try {
+    const opts = { signal: ctl.signal, modelTier: o.grade >= 10 || o.level === 'hard' || o.goal === 'advanced' ? 'complex' : 'default',
+      onText: ({ text }) => {
+        const hs = [...text.matchAll(/"heading"\s*:\s*"([^"]*)"/g)];
+        txt.textContent = hs.length ? 'Đang soạn: ' + hs[hs.length - 1][1] : (text.includes('"practice"') ? 'Đang soạn phần luyện tập...' : 'Đang soạn...');
+        bar.style.width = Math.min(96, text.length / expect * 100) + '%';
+      } };
+    if (images && images.length) opts.images = images;
+    const data = await sample.json(prompt, opts);
+    if (!data || !Array.isArray(data.sections) || !data.sections.length) throw { code: 'invalid_json' };
+    stEl.innerHTML = 'Xong! Phiếu đã hiện bên cạnh.';
+    return data;
+  } catch (e) {
+    if (e?.code === 'cancelled') stEl.innerHTML = 'Đã dừng.';
+    else stEl.innerHTML = '<span class="err">' + esc(ERR[e?.code] || 'Có lỗi khi tạo phiếu. Hãy thử lại.') + '</span>';
+    return null;
+  } finally { $('#goBtn').disabled = false; $('#improveBtn').disabled = false; ctl = null; busy = false; }
+}
+function showNew(data, c) {
+  data._ctx = c; renderSheet(data, false); saveRecent(data);
+  if (window.matchMedia('(max-width: 960px)').matches) $('#sheet').scrollIntoView({ behavior: 'smooth' });
+}
+$('#goBtn').onclick = async () => {
+  if (busy) return;
+  if (!sample) { setStatus('<span class="err">Cần mở trang trong Claude (đã đăng nhập) để tạo phiếu mới. Bạn vẫn có thể làm thử phiếu mẫu bên cạnh.</span>'); return; }
+  const o = { grade: +gradeSel.value, subject: subjSel.value, book: $('#book').value, level: document.querySelector('input[name="lvl"]:checked').value, len: document.querySelector('input[name="len"]:checked').value };
+  let images = [];
+  if (mode === 'name') {
+    o.lesson = $('#lesson').value.trim();
+    if (!o.lesson) { setStatus('<span class="err">Hãy gõ tên bài trước.</span>'); $('#lesson').focus(); return; }
+  } else {
+    o.lesson = $('#lesson2').value.trim();
+    if (!files.length && !$('#pasted').value.trim()) { setStatus('<span class="err">Hãy chọn tệp hoặc dán nội dung bài.</span>'); return; }
+    setStatus('Đang đọc tài liệu...');
+    try {
+      const src = await collectSource(sampleLimits);
+      o.text = src.text.trim(); images = src.images; o.images = images.length > 0;
+      if (src.skipped.length) toast('Bỏ qua ảnh: ' + src.skipped.join(', '));
+      if (!o.text && !images.length) { setStatus('<span class="err">Không đọc được chữ trong tài liệu. Hãy thử ảnh chụp rõ hơn hoặc dán nội dung.</span>'); return; }
+    } catch (e) { setStatus('<span class="err">Không mở được tệp. Hãy thử tệp PDF/Word khác hoặc dán nội dung.</span>'); return; }
+  }
+  const data = await runSample(buildPrompt(o), o, images, status);
+  if (!data) return;
+  data.subject ||= o.subject; data.grade ||= o.grade; data.book = o.book; data.title ||= o.lesson;
+  showNew(data, { grade: o.grade, subject: o.subject, book: o.book, lesson: o.lesson || data.title, level: o.level, text: (o.text || '').slice(0, 30000) });
+};
+let autoT = null;
+function maybeAutoGenerate() {
+  if (!$('#autoGen').checked || !sample || busy || mode !== 'file' || !files.length) return;
+  clearTimeout(autoT); autoT = setTimeout(() => $('#goBtn').click(), 500);
+}
+
+/* ---------- improve one part ---------- */
+function ctxOf(d) { return d._ctx || { grade: d.grade, subject: d.subject, book: d.book, lesson: d.title, level: 'auto', text: '' }; }
+function renderParts(wrongs) {
+  const box = $('#parts'); if (!current) return;
+  const prev = new Set([...box.querySelectorAll('input:checked')].map(i => +i.value));
+  box.innerHTML = (current.sections || []).map((s, i) => {
+    const w = wrongs ? wrongs[i] : null;
+    const checked = wrongs ? w > 0 : prev.has(i);
+    const badge = w == null ? '' : w > 0 ? `<span class="badge bad">chưa đúng ${w}</span>` : '<span class="badge ok">đúng hết</span>';
+    return `<label class="part"><input type="checkbox" value="${i}"${checked ? ' checked' : ''}><span>${esc(s.heading)}</span>${badge}</label>`;
+  }).join('');
+}
+const GOALS = {
+  theory: 'Mục tiêu: NẮM CHẮC LÝ THUYẾT. Giải thích kỹ từng ý bằng lời dễ hiểu, thêm ví dụ minh hoạ gần gũi, chỉ ra chỗ học sinh hay nhầm. Phần lý thuyết dài hơn (5–8 ý mỗi mục) với nhiều chỗ trống; câu hỏi chủ yếu nhận biết – thông hiểu.',
+  practice: 'Mục tiêu: LUYỆN BÀI TẬP. Lý thuyết ngắn gọn (3–5 ý mỗi mục, có chỗ trống), nhiều câu hỏi và bài tập xếp từ dễ đến khó (nhận biết → thông hiểu → vận dụng); nếu môn học có bài toán/tính toán thì có bài tập tính toán.',
+  advanced: 'Mục tiêu: NÂNG CAO. Lý thuyết mở rộng ngắn gọn, câu hỏi mức vận dụng và vận dụng cao: tình huống thực tế, so sánh, phân tích, giải thích hiện tượng, bài tập khó nhiều bước.'
+};
+function plain(t) { return String(t).replace(/\{\{([^}]*)\}\}/g, (m, a) => a.split('|')[0]); }
+$('#improveBtn').onclick = async () => {
+  if (busy || !current) return;
+  const st2 = $('#status2');
+  if (!sample) { st2.innerHTML = '<span class="err">Cần mở trang trong Claude (đã đăng nhập) để tạo phiếu ôn.</span>'; return; }
+  const idxs = [...$('#parts').querySelectorAll('input:checked')].map(i => +i.value);
+  if (!idxs.length) { st2.innerHTML = '<span class="err">Hãy chọn ít nhất một phần.</span>'; return; }
+  const c = ctxOf(current), goal = document.querySelector('input[name="goal"]:checked').value, note = $('#focusNote').value.trim();
+  const parts = idxs.map(i => current.sections[i]).filter(Boolean);
+  const partText = parts.map(s => `${s.heading}\n${(s.theory || []).map(t => '- ' + plain(t)).join('\n')}`).join('\n\n');
+  const wrongList = [];
+  idxs.forEach(i => { const [a, b] = secRanges[i] || [0, 0]; items.slice(a, b).forEach(it => { if (itemGood[it.id] === false && it.label) wrongList.push(plain(it.label)); }); });
+  const o = { grade: +c.grade || 6, subject: c.subject, book: c.book, level: c.level || 'auto', goal, len: 'medium' };
+  const Q3 = '"""';
+  const prompt = `Bạn là giáo viên Việt Nam giỏi. Học sinh lớp ${o.grade}, môn ${o.subject}${o.book ? ', bộ sách ' + o.book : ''}, bài "${c.lesson || current.title}" muốn CẢI THIỆN các phần sau:
+${Q3}
+${partText}
+${Q3}
+${wrongList.length ? 'Các ý học sinh vừa làm SAI (tập trung củng cố):\n- ' + wrongList.slice(0, 20).join('\n- ') + '\n' : ''}${note ? 'Học sinh tự nhận xét chỗ chưa hiểu: "' + note.slice(0, 500) + '"\n' : ''}${c.text ? 'TÀI LIỆU GỐC của bài (chỉ dùng kiến thức trong tài liệu này):\n' + Q3 + '\n' + c.text.slice(0, 30000) + '\n' + Q3 + '\n' : 'Chỉ dùng kiến thức chắc chắn đúng theo chương trình GDPT 2018.\n'}
+Hãy soạn một PHIẾU ÔN TRỌNG TÂM chỉ cho các phần trên (không lan sang phần khác của bài).
+${GOALS[goal]}
+Mức độ phù hợp lớp: ${levelGuide(o.grade, o.level)}
+Chia thành 2–4 mục nhỏ (I., II., ...). Trong "theory", đục lỗ từ khóa bằng {{đáp án}} (nhiều đáp án: {{a|b}}). Mỗi mục 4–6 câu hỏi thuộc ít nhất 3 loại khác nhau, xếp từ dễ đến khó, có câu hỏi đánh trúng các ý học sinh làm sai. "practice": 4–6 câu tổng hợp. Câu mới, không chép lại y nguyên câu cũ. Toàn bộ bằng tiếng Việt có dấu.
+
+CÁC LOẠI CÂU HỎI (đúng định dạng JSON):
+- {"type":"fill","q":"Câu có {{chỗ trống}} cần điền."}
+- {"type":"mcq","q":"Câu hỏi?","options":["...","...","...","..."],"answer":0,"explain":"giải thích ngắn"}   (answer = chỉ số phương án đúng, bắt đầu từ 0)
+- {"type":"tf","q":"Dẫn đề","items":[{"s":"Nhận định","answer":true}]}
+- {"type":"match","q":"Nối mỗi ý ở cột A với một ý phù hợp ở cột B.","pairs":[{"a":"...","b":"..."}]}
+- {"type":"order","q":"Sắp xếp ... theo đúng thứ tự.","items":["bước 1","bước 2","bước 3"]}   (liệt kê theo thứ tự ĐÚNG)
+- {"type":"short","q":"Câu hỏi","answer":"đáp án hoặc đáp án mẫu"}
+
+TRẢ VỀ DUY NHẤT một JSON:
+{"title":"Ôn tập trọng tâm: ...","objectives":["..."],"sections":[{"heading":"I. ...","theory":["..."],"questions":[...]}],"practice":[...]}`;
+  const data = await runSample(prompt, o, null, st2);
+  if (!data) return;
+  data.subject = c.subject; data.grade = o.grade; data.book = c.book; data.focus = true; data.title ||= 'Ôn tập trọng tâm';
+  showNew(data, c);
+};
+
+/* ---------- lesson list (table of contents) ---------- */
+const lessonInput = $('#lesson'), lessonList = $('#lessonList');
+const tocMem = {}; let tocCtl = null, tocShown = [], tocActive = -1;
+const fold = s => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
+const tocKey = () => ['toc', $('#book').value, gradeSel.value, subjSel.value].join('|');
+const tocLabel = () => `${subjSel.value} ${gradeSel.value} · ${$('#book').value}`;
+function openList() { lessonList.hidden = false; lessonInput.setAttribute('aria-expanded', 'true'); }
+function closeList() { lessonList.hidden = true; lessonInput.setAttribute('aria-expanded', 'false'); tocActive = -1; }
+function listMsg(html) { lessonList.innerHTML = html; openList(); }
+function renderToc(toc, loading) {
+  const q = fold(lessonInput.value.trim());
+  tocShown = []; let html = '';
+  for (const ch of toc.chapters || []) {
+    const ls = (ch.lessons || []).filter(l => !q || fold(l).includes(q) || fold(ch.name || '').includes(q));
+    if (!ls.length) continue;
+    if (ch.name) html += `<div class="ch">${esc(ch.name)}</div>`;
+    for (const l of ls) { html += `<button type="button" class="ls" role="option" data-k="${tocShown.length}">${esc(l)}</button>`; tocShown.push(l); }
+  }
+  if (!html) html = (toc.chapters || []).length ? '<div class="msg">Không có bài nào khớp. Bạn vẫn có thể gõ tên bài.</div>' : '<div class="msg">Chưa có sách môn này ở lớp đã chọn trong bộ sách này.</div>';
+  html += loading ? '<div class="msg">Đang tải thêm bài...</div>' : `<div class="foot"><span>Mục lục ${esc(tocLabel())}. Do AI liệt kê nên có thể lệch vài bài so với sách.</span><button type="button" id="tocReload">Tải lại</button></div>`;
+  lessonList.innerHTML = html; tocActive = -1; openList();
+}
+async function loadToc(force) {
+  const key = tocKey();
+  if (!force) { const c = tocMem[key] || store.get(key); if (c) { tocMem[key] = c; renderToc(c); return; } }
+  if (!sample) { listMsg('<div class="msg">Đang kết nối...</div>'); await Promise.race([capReady, new Promise(r => setTimeout(r, 12000))]); if (key !== tocKey()) return; }
+  if (!sample) { listMsg('<div class="msg err">Chưa kết nối được với Claude nên chưa lấy được danh sách bài. Hãy đăng nhập Claude rồi tải lại trang. Bạn vẫn có thể gõ tên bài.</div>'); return; }
+  tocCtl?.abort(); const ctl = tocCtl = new AbortController();
+  listMsg(`<div class="msg">Đang lấy danh sách bài ${esc(tocLabel())}... (lần đầu mất khoảng 10–30 giây)</div>`);
+  const partial = text => {
+    const chapters = []; let cur = null;
+    for (const m of text.matchAll(/"name"\s*:\s*"([^"]*)"|"((?:Bài|Unit|Tiết|Lesson|Chủ đề)[^"]*)"/g)) {
+      if (m[1] !== undefined) { cur = { name: m[1], lessons: [] }; chapters.push(cur); }
+      else if (m[2]) { if (!cur) { cur = { name: '', lessons: [] }; chapters.push(cur); } cur.lessons.push(m[2]); }
+    }
+    return { chapters: chapters.filter(c => c.lessons.length) };
+  };
+  try {
+    const toc = await sample.json(`Liệt kê MỤC LỤC ĐẦY ĐỦ của sách giáo khoa môn ${subjSel.value} lớp ${gradeSel.value}, bộ sách "${$('#book').value}" (chương trình GDPT 2018, Việt Nam). Ghi đúng số thứ tự và tên bài như trong sách (vd: "Bài 18. Tế bào – đơn vị cơ sở của sự sống"), nhóm theo chương/chủ đề/phần như trong sách. Nếu sách có tập 1 và tập 2 thì gộp theo thứ tự. Nếu môn này không có SGK ở lớp này trong bộ sách này, trả về {"chapters":[]}.
+Trả về DUY NHẤT JSON: {"chapters":[{"name":"Chương I. ...","lessons":["Bài 1. ...","Bài 2. ..."]}]}`, { signal: ctl.signal, modelTier: 'quick', cache: force ? { gcTime: 86400000, refresh: true } : { gcTime: 86400000 },
+        onText: ({ text }) => { if (ctl !== tocCtl || key !== tocKey() || lessonList.hidden) return; const pc = partial(text); if (pc.chapters.length) renderToc(pc, true); } });
+    if (ctl !== tocCtl) return;
+    const clean = { chapters: (toc?.chapters || []).filter(c => c && Array.isArray(c.lessons)).map(c => ({ name: String(c.name || ''), lessons: c.lessons.map(String) })) };
+    tocMem[key] = clean; if (clean.chapters.length) store.set(key, clean);
+    if (key === tocKey() && (document.activeElement === lessonInput || !lessonList.hidden)) renderToc(clean);
+  } catch (e) {
+    if (e?.code === 'cancelled' || ctl !== tocCtl) return;
+    listMsg(`<div class="msg err">${esc(ERR[e?.code] || 'Chưa lấy được danh sách bài.')}${e?.code ? ' (mã lỗi: ' + esc(e.code) + ')' : ''}</div><div class="foot"><span>Bạn vẫn có thể gõ tên bài.</span><button type="button" id="tocReload">Thử lại</button></div>`);
+  }
+}
+lessonInput.addEventListener('focus', () => loadToc(false));
+lessonInput.addEventListener('click', () => { if (lessonList.hidden) loadToc(false); });
+lessonInput.addEventListener('input', () => { const c = tocMem[tocKey()]; if (c) renderToc(c); });
+lessonInput.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeList(); return; }
+  if (lessonList.hidden || !tocShown.length) return;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault(); tocActive = (tocActive + (e.key === 'ArrowDown' ? 1 : -1) + tocShown.length) % tocShown.length;
+    lessonList.querySelectorAll('.ls').forEach((b, i) => b.classList.toggle('active', i === tocActive));
+    lessonList.querySelector('.ls.active')?.scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter' && tocActive >= 0) { e.preventDefault(); pickLesson(tocShown[tocActive]); }
+});
+function pickLesson(l) { lessonInput.value = l; closeList(); }
+lessonList.addEventListener('mousedown', e => e.preventDefault());   // keep focus in the input
+lessonList.addEventListener('click', e => {
+  const b = e.target.closest('.ls'); if (b) { pickLesson(tocShown[+b.dataset.k]); return; }
+  if (e.target.closest('#tocReload')) loadToc(true);
+});
+document.addEventListener('click', e => { if (!e.target.closest('.combo')) closeList(); });
+[gradeSel, subjSel, $('#book')].forEach(el => el.addEventListener('change', () => { tocCtl?.abort(); closeList(); }));
+
+/* ---------- recent ---------- */
+function saveRecent(d) { const r = (store.get('phieu-recent') || []).filter(x => x.title !== d.title); r.unshift(d); store.set('phieu-recent', r.slice(0, 6)); renderRecent(); }
+function renderRecent() {
+  const r = store.get('phieu-recent') || [];
+  $('#recentWrap').hidden = !r.length;
+  $('#recent').innerHTML = r.map((d, i) => `<button type="button" data-i="${i}">${esc(d.title)}<small>Lớp ${esc(d.grade)} · ${esc(d.subject)}</small></button>`).join('');
+}
+$('#recent').onclick = e => { const b = e.target.closest('button[data-i]'); if (!b) return; const d = (store.get('phieu-recent') || [])[+b.dataset.i]; if (d) renderSheet(d, false); };
+
+/* ---------- rendering ---------- */
+let items = [], current = null, hasLongShort = false, qNo = 0, secRanges = [], itemGood = {};
+function blanksHTML(text) {
+  // escape text, then turn {{a|b}} into inputs
+  const parts = String(text).split(/(\{\{[^}]*\}\})/g);
+  return parts.map(p => {
+    const m = p.match(/^\{\{([^}]*)\}\}$/);
+    if (!m) return esc(p);
+    const alts = m[1].split('|').map(s => s.trim()).filter(Boolean);
+    const id = items.length;
+    const w = Math.max(5, Math.min(26, Math.max(...alts.map(a => a.length)) + 3));
+    items.push({ kind: 'blank', id, alts, label: alts[0] });
+    return `<span class="bw"><input class="blank" data-item="${id}" style="width:${w}ch" aria-label="Chỗ trống" autocomplete="off" spellcheck="false"><span class="fix" data-fix="${id}" hidden>${esc(alts[0])}</span></span>`;
+  }).join('');
+}
+const TYPE_LABEL = { fill: 'Điền từ', mcq: 'Trắc nghiệm', tf: 'Đúng / Sai', match: 'Nối cột', order: 'Sắp xếp', short: 'Trả lời ngắn' };
+function questionHTML(q) {
+  qNo++;
+  const t = q.type in TYPE_LABEL ? q.type : 'short';
+  let label = TYPE_LABEL[t];
+  if (t === 'short' && !isAutoShort(q)) label = 'Tự luận';
+  const head = `<p><b>Câu ${qNo}.</b>${t === 'fill' ? blanksHTML(q.q) : esc(q.q)}<span class="qtype">${label}</span></p>`;
+  if (t === 'fill') return `<div class="q">${head}</div>`;
+  if (t === 'mcq') {
+    const id = items.length; items.push({ kind: 'mcq', id, answer: +q.answer || 0, label: q.q });
+    const opts = (q.options || []).map((o, i) => `<label class="opt" data-opt="${id}-${i}"><input type="radio" name="mcq${id}" value="${i}"><span><b>${LETTERS[i]}.</b> ${esc(String(o).replace(/^[A-D][.)]\s*/, ''))}</span></label>`).join('');
+    return `<div class="q">${head}<div class="opts">${opts}</div>${q.explain ? `<p class="explain" data-fix="${id}" hidden>${esc(q.explain)}</p>` : ''}</div>`;
+  }
+  if (t === 'tf') {
+    const rows = (q.items || []).map((it, i) => {
+      const id = items.length; items.push({ kind: 'tf', id, answer: it.answer === true || it.answer === 'true' || it.answer === 'Đúng', label: it.s });
+      return `<tr data-row="${id}"><td><b>${'abcdefgh'[i]})</b> ${esc(it.s)}</td><td class="c"><input type="radio" name="tf${id}" value="1" aria-label="Đúng"></td><td class="c"><input type="radio" name="tf${id}" value="0" aria-label="Sai"></td></tr>`;
+    }).join('');
+    return `<div class="q">${head}<div class="tblwrap"><table class="tf"><thead><tr><th>Nhận định</th><th class="c">Đúng</th><th class="c">Sai</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  }
+  if (t === 'match') {
+    const pairs = (q.pairs || []).filter(p => p && p.a && p.b);
+    const right = shuffle(pairs.map((p, i) => ({ b: p.b, i })));
+    const letterOf = {}; right.forEach((r, k) => letterOf[r.i] = LETTERS[k]);
+    const optHTML = '<option value="">–</option>' + right.map((r, k) => `<option>${LETTERS[k]}</option>`).join('');
+    const left = pairs.map((p, i) => { const id = items.length; items.push({ kind: 'match', id, answer: letterOf[i], label: p.a + ' – ' + p.b });
+      return `<div class="mrow" data-row="${id}"><span class="tag">${i + 1}.</span><span>${esc(p.a)}</span><select data-item="${id}" aria-label="Nối ý ${i + 1} với">${optHTML}</select></div>`; }).join('');
+    const rightHTML = right.map((r, k) => `<div class="mrow"><span class="tag">${LETTERS[k]}.</span><span>${esc(r.b)}</span></div>`).join('');
+    return `<div class="q">${head}<div class="match"><div class="mcol"><span class="lbl">Cột A</span>${left}</div><div class="mcol"><span class="lbl">Cột B</span>${rightHTML}</div></div><p class="explain" data-fix="${items.length - 1}" hidden>Đáp án: ${pairs.map((p, i) => (i + 1) + '–' + letterOf[i]).join(', ')}</p></div>`;
+  }
+  if (t === 'order') {
+    const correct = (q.items || []).map(String);
+    let mixed = shuffle(correct); if (correct.length > 1 && mixed.join() === correct.join()) mixed = mixed.slice(1).concat(mixed[0]);
+    const id = items.length; items.push({ kind: 'order', id, answer: correct, label: q.q });
+    const lis = mixed.map((s, i) => `<li><span class="n">${i + 1}.</span><span>${esc(s)}</span><button type="button" data-mv="-1" aria-label="Lên">↑</button><button type="button" data-mv="1" aria-label="Xuống">↓</button></li>`).join('');
+    return `<div class="q">${head}<ol class="order" data-item="${id}">${lis}</ol><p class="explain" data-fix="${id}" hidden>Thứ tự đúng: ${correct.map(esc).join(' → ')}</p></div>`;
+  }
+  // short
+  const id = items.length;
+  if (isAutoShort(q)) {
+    items.push({ kind: 'blank', id, alts: String(q.answer).split('|').map(s => s.trim()), label: q.q });
+    const w = Math.max(8, Math.min(26, String(q.answer).length + 4));
+    return `<div class="q">${head}<p>Trả lời: <input class="blank" data-item="${id}" style="width:${w}ch" aria-label="Câu trả lời" autocomplete="off"><span class="fix" data-fix="${id}" hidden>${esc(String(q.answer).split('|')[0])}</span></p></div>`;
+  }
+  hasLongShort = true;
+  items.push({ kind: 'long', id, q: q.q, answer: q.answer });
+  return `<div class="q">${head}<textarea class="long" data-item="${id}" aria-label="Bài làm"></textarea><p class="aifeedback" data-ai="${id}" hidden></p><button type="button" class="reveal" data-reveal="${id}">Xem đáp án gợi ý</button><p class="model" data-fix="${id}" hidden>${esc(q.answer)}</p></div>`;
+}
+function isAutoShort(q) { const a = String(q.answer ?? ''); return a.length > 0 && a.length <= 24 && a.split(/\s+/).length <= 4; }
+
+function renderSheet(d, isExample) {
+  current = d; items = []; qNo = 0; hasLongShort = false;
+  const sheet = $('#sheet'); sheet.classList.remove('show-ans');
+  secRanges = []; itemGood = {};
+  const secs = (d.sections || []).map(s => { const start = items.length; const h = `<section class="sec"><h3>${esc(s.heading)}</h3>
+      <ul class="theory">${(s.theory || []).map(t => `<li>${blanksHTML(t)}</li>`).join('')}</ul>
+      ${(s.questions || []).length ? `<div class="qbox"><span class="qhead">Câu hỏi</span>${s.questions.map(questionHTML).join('')}</div>` : ''}</section>`; secRanges.push([start, items.length]); return h; }).join('');
+  const prac = (d.practice || []).length ? `<section class="sec"><h3>Luyện tập tổng hợp</h3><div class="qbox"><span class="qhead">Câu hỏi</span>${d.practice.map(questionHTML).join('')}</div></section>` : '';
+  sheet.innerHTML = `<header class="sh-head">${d.focus ? '<span class="focus-flag">Phiếu ôn trọng tâm</span>' : ''}<span class="sh-kicker">Tài liệu rời · ${esc(d.subject)} ${esc(d.grade)}${d.book ? ' · ' + esc(d.book) : ''}</span>
+      <h2 class="sh-title">${esc(d.title)}</h2>
+      <div class="sh-name"><span>Họ và tên: <input id="stName" aria-label="Họ và tên"></span><span>Lớp: <input id="stClass" class="short" aria-label="Lớp"></span></div></header>
+    ${(d.objectives || []).length ? `<div class="objectives"><b>Sau bài học, em có thể</b><ul>${d.objectives.map(o => `<li>${esc(o)}</li>`).join('')}</ul></div>` : ''}
+    ${secs}${prac}<p class="sheet-foot">Điền vào chỗ trống, làm các câu hỏi, rồi bấm “Kiểm tra bài”.</p>`;
+  $('#exFlag').hidden = !isExample;
+  $('#score').textContent = 'Chưa chấm'; $('#score').classList.remove('has');
+  $('#aiGradeBtn').hidden = !sample || !hasLongShort;
+  ansShown = false; $('#ansBtn').textContent = 'Hiện đáp án';
+  renderParts(null);
+}
+
+/* ---------- interactions ---------- */
+const sheet = $('#sheet');
+sheet.addEventListener('click', e => {
+  const mv = e.target.closest('button[data-mv]');
+  if (mv) { const li = mv.closest('li'), ol = li.parentElement; const d = +mv.dataset.mv;
+    if (d < 0 && li.previousElementSibling) ol.insertBefore(li, li.previousElementSibling);
+    if (d > 0 && li.nextElementSibling) ol.insertBefore(li.nextElementSibling, li);
+    [...ol.children].forEach((x, i) => x.querySelector('.n').textContent = (i + 1) + '.'); ol.classList.remove('ok', 'bad'); mv.focus(); return; }
+  const rv = e.target.closest('button[data-reveal]');
+  if (rv) { const m = sheet.querySelector(`[data-fix="${rv.dataset.reveal}"]`); m.hidden = !m.hidden; rv.textContent = m.hidden ? 'Xem đáp án gợi ý' : 'Ẩn đáp án gợi ý'; }
+});
+sheet.addEventListener('input', e => { const el = e.target; el.classList?.remove('ok', 'bad'); el.closest('.mrow')?.classList.remove('ok', 'bad'); });
+function valueOf(it) {
+  if (it.kind === 'blank') return sheet.querySelector(`[data-item="${it.id}"]`).value;
+  if (it.kind === 'mcq') { const r = sheet.querySelector(`input[name="mcq${it.id}"]:checked`); return r ? +r.value : null; }
+  if (it.kind === 'tf') { const r = sheet.querySelector(`input[name="tf${it.id}"]:checked`); return r ? r.value === '1' : null; }
+  if (it.kind === 'match') return sheet.querySelector(`[data-item="${it.id}"]`).value;
+  if (it.kind === 'order') return [...sheet.querySelector(`[data-item="${it.id}"]`).children].map(li => li.children[1].textContent);
+  return sheet.querySelector(`[data-item="${it.id}"]`).value;
+}
+function check() {
+  let ok = 0, total = 0;
+  for (const it of items) {
+    if (it.kind === 'long') continue;
+    total++; const v = valueOf(it); let good = false;
+    if (it.kind === 'blank') { good = it.alts.some(a => norm(a) === norm(v)); const el = sheet.querySelector(`[data-item="${it.id}"]`); el.classList.toggle('ok', good); el.classList.toggle('bad', !good); sheet.querySelector(`[data-fix="${it.id}"]`).hidden = good; }
+    if (it.kind === 'mcq') { good = v === it.answer; sheet.querySelectorAll(`[data-opt^="${it.id}-"]`).forEach((o, i) => { o.classList.toggle('ok', i === it.answer); o.classList.toggle('bad', i === v && !good); }); const ex = sheet.querySelector(`[data-fix="${it.id}"]`); if (ex) ex.hidden = false; }
+    if (it.kind === 'tf') { good = v === it.answer; const tr = sheet.querySelector(`[data-row="${it.id}"]`); tr.classList.toggle('ok', good); tr.classList.toggle('bad', !good); }
+    if (it.kind === 'match') { good = v === it.answer; const r = sheet.querySelector(`[data-row="${it.id}"]`); r.classList.toggle('ok', good); r.classList.toggle('bad', !good); }
+    if (it.kind === 'order') { good = v.join('\u0001') === it.answer.join('\u0001'); const ol = sheet.querySelector(`[data-item="${it.id}"]`); ol.classList.toggle('ok', good); ol.classList.toggle('bad', !good); sheet.querySelector(`[data-fix="${it.id}"]`).hidden = good; }
+    itemGood[it.id] = good;
+    if (good) ok++;
+  }
+  sheet.querySelectorAll('.match').forEach(m => { const q = m.closest('.q'); const ex = q.querySelector('.explain'); if (ex) ex.hidden = !q.querySelector('.mrow.bad'); });
+  renderParts(secRanges.map(([a, b]) => items.slice(a, b).filter(it => it.kind !== 'long' && itemGood[it.id] === false).length));
+  const sc = $('#score'); sc.textContent = `Đúng ${ok}/${total}` + (total ? ` · ${String(Math.round(ok / total * 100) / 10).replace('.', ',')} điểm` : ''); sc.classList.add('has');
+}
+let ansShown = false;
+function showAnswers() {
+  ansShown = !ansShown;
+  sheet.querySelectorAll('[data-fix]').forEach(el => el.hidden = !ansShown);
+  sheet.querySelectorAll('button[data-reveal]').forEach(b => b.textContent = ansShown ? 'Ẩn đáp án gợi ý' : 'Xem đáp án gợi ý');
+  $('#ansBtn').textContent = ansShown ? 'Ẩn đáp án' : 'Hiện đáp án';
+}
+$('#checkBtn').onclick = check;
+$('#ansBtn').onclick = showAnswers;
+$('#resetBtn').onclick = () => { if (current) renderSheet(current, !$('#exFlag').hidden); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+
+/* ---------- AI grading of open answers ---------- */
+$('#aiGradeBtn').onclick = async () => {
+  if (!sample) return;
+  const longs = items.filter(it => it.kind === 'long').map(it => ({ it, student: valueOf(it).trim() })).filter(x => x.student);
+  if (!longs.length) { toast('Hãy viết bài làm ở các câu tự luận trước.'); return; }
+  const btn = $('#aiGradeBtn'); btn.disabled = true; btn.textContent = 'Đang chấm...';
+  try {
+    const list = longs.map((x, i) => `#${i}\nCâu hỏi: ${x.it.q}\nĐáp án mẫu: ${x.it.answer}\nBài làm của học sinh: ${x.student}`).join('\n\n');
+    const res = await sample.json(`Bạn là giáo viên lớp ${current.grade} môn ${current.subject}. Chấm các câu tự luận sau so với đáp án mẫu, chấp nhận cách diễn đạt khác nếu đúng ý. Nhận xét 1 câu ngắn, thân thiện, chỉ ra ý còn thiếu.\n\n${list}\n\nTrả về DUY NHẤT JSON mảng: [{"i":0,"score":0.5,"comment":"..."}] với score từ 0 đến 1.`, { modelTier: 'quick', cache: false });
+    for (const r of Array.isArray(res) ? res : []) { const x = longs[+r.i]; if (!x) continue; const p = sheet.querySelector(`[data-ai="${x.it.id}"]`); p.hidden = false; p.textContent = `${Math.round((+r.score || 0) * 100)}% · ${r.comment || ''}`; }
+  } catch (e) { if (e?.code !== 'cancelled') toast(ERR[e?.code] || 'Chưa chấm được. Thử lại sau.'); }
+  finally { btn.disabled = false; btn.textContent = 'Nhờ AI chấm tự luận'; }
+};
+
+/* ---------- Word export ---------- */
+$('#dlBtn').onclick = async () => {
+  if (!downloads || !current) return;
+  const btn = $('#dlBtn'); btn.disabled = true; btn.textContent = 'Đang tạo file...';
+  try {
+    await loadScript(LIB.docx);
+    const blob = await window.docx.Packer.toBlob(buildDocx(current));
+    const fname = 'Tai_lieu_roi_' + String(current.title || 'bai_hoc').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 60) + '.docx';
+    await downloads.save({ filename: fname, data: blob });
+    toast('Đã lưu ' + fname);
+  } catch (e) { if (e?.code !== 'declined') toast('Chưa tạo được file Word. Thử lại sau.'); }
+  finally { btn.disabled = false; btn.textContent = 'Tải file Word'; }
+};
+function buildDocx(d) {
+  const { Document, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, PageBreak } = window.docx;
+  const FONT = 'Times New Roman', SZ = 26;
+  const run = (text, o = {}) => new TextRun({ text, font: FONT, size: SZ, ...o });
+  const para = (runs, o = {}) => new Paragraph({ children: Array.isArray(runs) ? runs : [runs], spacing: { after: 100, line: 320 }, ...o });
+  const dots = n => '.'.repeat(Math.max(10, Math.min(40, n * 2 + 6)));
+  const blankRuns = text => String(text).split(/(\{\{[^}]*\}\})/g).filter(Boolean).map(p => { const m = p.match(/^\{\{([^}]*)\}\}$/); return m ? run(dots(m[1].split('|')[0].length)) : run(p); });
+  const blankAns = text => [...String(text).matchAll(/\{\{([^}]*)\}\}/g)].map(m => m[1].split('|')[0].trim());
+  const cell = (text, o = {}) => new TableCell({ children: [para(run(text, o.bold ? { bold: true } : {}))], width: o.w ? { size: o.w, type: WidthType.PERCENTAGE } : undefined });
+  const out = [], key = []; let n = 0;
+  out.push(para(run(`TÀI LIỆU RỜI · ${d.subject} ${d.grade}${d.book ? ' · ' + d.book : ''}`, { size: 22, bold: true }), { alignment: AlignmentType.CENTER }));
+  out.push(para(run(String(d.title || '').toUpperCase(), { size: 32, bold: true }), { alignment: AlignmentType.CENTER }));
+  out.push(para(run('Họ và tên: ................................................   Lớp: ............'), { alignment: AlignmentType.CENTER, spacing: { after: 240 } }));
+  if ((d.objectives || []).length) { out.push(para(run('Mục tiêu: ', { bold: true }))); d.objectives.forEach(o => out.push(para(run('– ' + o)))); }
+  const addQ = q => {
+    n++; const t = q.type; const label = run(`Câu ${n}. `, { bold: true });
+    if (t === 'fill') { out.push(para([label, ...blankRuns(q.q)])); key.push(`Câu ${n}: ${blankAns(q.q).join('; ')}`); return; }
+    out.push(para([label, run(q.q)]));
+    if (t === 'mcq') { (q.options || []).forEach((o, i) => out.push(para(run(`     ${LETTERS[i]}. ${String(o).replace(/^[A-D][.)]\s*/, '')}`)))); key.push(`Câu ${n}: ${LETTERS[+q.answer || 0]}${q.explain ? ' – ' + q.explain : ''}`); }
+    else if (t === 'tf') { out.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [new TableRow({ children: [cell('Nhận định', { bold: true, w: 80 }), cell('Đúng', { bold: true, w: 10 }), cell('Sai', { bold: true, w: 10 })] }), ...(q.items || []).map((it, i) => new TableRow({ children: [cell(`${'abcdefgh'[i]}) ${it.s}`), cell(''), cell('')] }))] })); key.push(`Câu ${n}: ${(q.items || []).map((it, i) => 'abcdefgh'[i] + ') ' + (it.answer === true || it.answer === 'true' ? 'Đ' : 'S')).join(', ')}`); }
+    else if (t === 'match') { const pairs = q.pairs || []; const right = shuffle(pairs.map((p, i) => ({ b: p.b, i }))); const L = {}; right.forEach((r, k) => L[r.i] = LETTERS[k]);
+      out.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [new TableRow({ children: [cell('Cột A', { bold: true, w: 50 }), cell('Cột B', { bold: true, w: 50 })] }), ...pairs.map((p, i) => new TableRow({ children: [cell(`${i + 1}. ${p.a}`), cell(`${LETTERS[i]}. ${right[i]?.b ?? ''}`)] }))] }));
+      out.push(para(run('Trả lời: ' + pairs.map((p, i) => `${i + 1} – .....`).join(';   '))));
+      key.push(`Câu ${n}: ${pairs.map((p, i) => (i + 1) + '–' + L[i]).join(', ')}`); }
+    else if (t === 'order') { shuffle(q.items || []).forEach(s => out.push(para(run(`     (   ) ${s}`)))); key.push(`Câu ${n}: ${(q.items || []).join(' → ')}`); }
+    else { const lines = isAutoShort(q) ? 1 : 4; for (let i = 0; i < lines; i++) out.push(para(run('.'.repeat(120), { size: 20 }))); key.push(`Câu ${n}: ${String(q.answer).split('|')[0]}`); }
+  };
+  (d.sections || []).forEach(s => {
+    out.push(para(run(s.heading, { bold: true, size: 28 }), { spacing: { before: 240, after: 120 } }));
+    const th = []; (s.theory || []).forEach(t => { out.push(para([run('• '), ...blankRuns(t)])); th.push(...blankAns(t)); });
+    if (th.length) key.push(`${s.heading} – lý thuyết: ${th.join('; ')}`);
+    if ((s.questions || []).length) { out.push(para(run('Câu hỏi', { bold: true, italics: true }))); s.questions.forEach(addQ); }
+  });
+  if ((d.practice || []).length) { out.push(para(run('LUYỆN TẬP TỔNG HỢP', { bold: true, size: 28 }), { spacing: { before: 240, after: 120 } })); d.practice.forEach(addQ); }
+  out.push(new Paragraph({ children: [new PageBreak()] }));
+  out.push(para(run('ĐÁP ÁN', { bold: true, size: 30 }), { alignment: AlignmentType.CENTER }));
+  key.forEach(k => out.push(para(run(k))));
+  return new Document({ creator: 'Bảng Đen Số', title: d.title, sections: [{ properties: { page: { margin: { top: 1134, bottom: 1134, left: 1418, right: 1134 } } }, children: out }] });
+}
+
+/* ---------- example sheet ---------- */
+const EXAMPLE = {
+  title: 'Tế bào – đơn vị cơ sở của sự sống', subject: 'Khoa học tự nhiên', grade: 6, book: 'Kết nối tri thức với cuộc sống',
+  objectives: ['Nêu được khái niệm tế bào và các thành phần chính của tế bào.', 'Phân biệt tế bào nhân sơ với nhân thực, tế bào động vật với thực vật.', 'Giải thích được ý nghĩa của sự lớn lên và sinh sản của tế bào.'],
+  sections: [
+    { heading: 'I. Khái niệm tế bào',
+      theory: ['Tế bào là đơn vị {{cấu trúc|cấu tạo}} và {{chức năng}} cơ bản của cơ thể sống.', 'Mọi cơ thể sống đều được cấu tạo từ {{tế bào}}.', 'Hầu hết tế bào có kích thước rất nhỏ, muốn quan sát phải dùng {{kính hiển vi}}.', 'Một số tế bào khá lớn, như tế bào trứng cá chép, có thể quan sát bằng {{mắt thường}}.'],
+      questions: [
+        { type: 'mcq', q: 'Đơn vị cấu trúc cơ bản của mọi cơ thể sống là gì?', options: ['Mô', 'Tế bào', 'Cơ quan', 'Hệ cơ quan'], answer: 1, explain: 'Mô, cơ quan, hệ cơ quan đều được tạo thành từ nhiều tế bào.' },
+        { type: 'tf', q: 'Chọn Đúng hoặc Sai cho mỗi nhận định.', items: [{ s: 'Mọi cơ thể sống đều được cấu tạo từ tế bào.', answer: true }, { s: 'Tất cả tế bào đều nhìn thấy được bằng mắt thường.', answer: false }] }
+      ] },
+    { heading: 'II. Cấu tạo tế bào',
+      theory: ['Tế bào có 3 thành phần chính: {{màng tế bào}}, {{chất tế bào}} và nhân (hoặc vùng nhân).', 'Màng tế bào bảo vệ và {{kiểm soát}} các chất đi vào, đi ra khỏi tế bào.', 'Nhân tế bào là trung tâm {{điều khiển}} mọi hoạt động sống của tế bào.', 'Tế bào {{nhân sơ}} chưa có màng nhân; tế bào {{nhân thực}} có nhân hoàn chỉnh với màng nhân.', 'Tế bào thực vật có {{thành tế bào}} và {{lục lạp}}, tế bào động vật không có.'],
+      questions: [
+        { type: 'match', q: 'Nối mỗi thành phần ở cột A với chức năng phù hợp ở cột B.', pairs: [{ a: 'Màng tế bào', b: 'Bảo vệ, kiểm soát chất đi vào và đi ra' }, { a: 'Chất tế bào', b: 'Nơi diễn ra hầu hết hoạt động sống' }, { a: 'Nhân tế bào', b: 'Điều khiển mọi hoạt động sống' }, { a: 'Lục lạp', b: 'Thực hiện quang hợp' }] },
+        { type: 'mcq', q: 'Tế bào nào sau đây là tế bào nhân sơ?', options: ['Tế bào vi khuẩn', 'Tế bào gan', 'Tế bào lá cây', 'Tế bào thần kinh'], answer: 0, explain: 'Vi khuẩn chưa có màng nhân, chất di truyền nằm ở vùng nhân.' },
+        { type: 'fill', q: 'Bào quan chỉ có ở tế bào thực vật, giúp cây quang hợp là {{lục lạp}}.' }
+      ] },
+    { heading: 'III. Sự lớn lên và sinh sản của tế bào',
+      theory: ['Tế bào lớn lên đến một kích thước nhất định thì {{phân chia}} để sinh sản.', 'Từ 1 tế bào mẹ, sau một lần phân chia tạo ra {{2|hai}} tế bào con.', 'Sự lớn lên và sinh sản của tế bào giúp cơ thể {{lớn lên|sinh trưởng}} và thay thế các tế bào già, bị tổn thương.'],
+      questions: [
+        { type: 'order', q: 'Sắp xếp các giai đoạn phân chia của tế bào theo đúng thứ tự.', items: ['Tế bào lớn lên đến kích thước nhất định', 'Nhân tế bào phân chia', 'Chất tế bào phân chia', 'Hình thành hai tế bào con'] },
+        { type: 'short', q: 'Một tế bào phân chia liên tiếp 3 lần. Hỏi tạo ra bao nhiêu tế bào con?', answer: '8|tám' }
+      ] }
+  ],
+  practice: [
+    { type: 'short', q: 'Vì sao khi bị đứt tay nhẹ, sau một thời gian vết thương tự lành?', answer: 'Vì các tế bào ở vùng da bị tổn thương lớn lên và phân chia, tạo ra các tế bào mới thay thế tế bào bị tổn thương.' },
+    { type: 'mcq', q: 'Thành phần nào có ở tế bào thực vật nhưng không có ở tế bào động vật?', options: ['Màng tế bào', 'Nhân', 'Thành tế bào', 'Chất tế bào'], answer: 2 }
+  ]
+};
+renderSheet(EXAMPLE, true);
+renderRecent();
+})();
+</script>
+
+</body>
+</html>
