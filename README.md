@@ -15,13 +15,11 @@ Sản phẩm trình bày về tình trạng **thiếu sách giáo khoa năm họ
 > **Lưu ý về AI:** phần tạo phiếu, lấy danh sách bài, “Cải thiện một phần” và chấm tự luận dùng AI Claude, nên chỉ hoạt động trong link **claude.ai** (người dùng cần đăng nhập tài khoản Claude; lượt dùng tính vào tài khoản của họ). Trên GitHub Pages mọi phần khác chạy đầy đủ và vẫn làm thử được phiếu mẫu, kiểm tra bài, xem đáp án.
 
 ## Nội dung repo
-
-```
 index.html            Tủ sách Ngăn Sách Trống (một file, đã gồm Bảng Đen Số, poster, infographic)
 bang-den-so.html      Bảng Đen Số – trang riêng
 videos/               2 video: giới thiệu ý tưởng (cassette) và hướng dẫn (TV)
-san-pham/             Poster, infographic (JPG + PDF)
-```
+san-pham/             Poster, infographic (JPG)
+y-tuong/              Bài trình bày ý tưởng (Word) và sơ đồ
 
 ## Công nghệ
 
